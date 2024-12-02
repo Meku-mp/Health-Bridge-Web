@@ -1,36 +1,61 @@
-import  { useState } from "react";
+import { useState } from "react";
+import { Link } from 'react-router-dom';
 
 const NavBar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [activeLink, setActiveLink] = useState('/'); // default active link
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
+  };
+
+  const handleLinkClick = (link) => {
+    setActiveLink(link);  // Set the active link to the clicked one
   };
 
   return (
     <header className="bg-white shadow-md">
       <div className="container mx-auto px-4 flex justify-between items-center py-4">
         {/* Logo */}
-        <a  href="#home"><h1 className="text-[24px] font-bold text-gray-900 tracking-[5px]">HEALTHBRIDGE</h1></a>
-        
+        <Link to=""><h1 className="text-[24px] font-bold text-gray-900 sm:tracking-[5px]">HEALTHBRIDGE</h1></Link>
 
         {/* Menu for larger screens */}
-        <nav className="hidden md:flex space-x-6 active:text-[#007E85] text-[20px] font-normal font-lexend">
-          <a href="#home" className="text-gray-600 hover:text-teal-500 font-lexend">
+        <nav className="hidden md:flex space-x-6 text-[20px] font-normal font-lexend">
+          <Link
+            to="/"
+            className={`text-gray-600 hover:text-teal-500 ${activeLink === '/' ? 'text-teal-500' : ''}`}
+            onClick={() => handleLinkClick('/')}
+          >
             Home
-          </a>
-          <a href="#service" className="text-gray-600 hover:text-teal-500">
+          </Link>
+          <Link
+            to="/signup"
+            className={`text-gray-600 hover:text-teal-500 ${activeLink === '/signup' ? 'text-teal-500' : ''}`}
+            onClick={() => handleLinkClick('/signup')}
+          >
             Service
-          </a>
-          <a href="#contact" className="text-gray-600 hover:text-teal-500">
+          </Link>
+          <Link
+            to="/contactus"
+            className={`text-gray-600 hover:text-teal-500 ${activeLink === '/contactus' ? 'text-teal-500' : ''}`}
+            onClick={() => handleLinkClick('/contactus')}
+          >
             Contact Us
-          </a>
-          <a href="#help" className="text-gray-600 hover:text-teal-500">
+          </Link>
+          <Link
+            to="/help"
+            className={`text-gray-600 hover:text-teal-500 ${activeLink === '/help' ? 'text-teal-500' : ''}`}
+            onClick={() => handleLinkClick('/help')}
+          >
             Help
-          </a>
-          <a href="#blogs" className="text-gray-600 hover:text-teal-500">
+          </Link>
+          <Link
+            to="/blogs"
+            className={`text-gray-600 hover:text-teal-500 ${activeLink === '/blogs' ? 'text-teal-500' : ''}`}
+            onClick={() => handleLinkClick('/blogs')}
+          >
             Blogs
-          </a>
+          </Link>
         </nav>
 
         {/* Hamburger Icon for smaller screens */}
@@ -57,32 +82,52 @@ const NavBar = () => {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <nav className="md:hidden bg-white shadow-md">
-          <ul className="flex flex-col items-center space-y-4 py-4 active:text-[#007E85] text-[20px] font-normal font-lexend">
+        <nav className="md:hidden bg-white shadow-md z-10">
+          <ul className="flex flex-col items-center space-y-4 py-4 text-[20px] font-normal font-lexend">
             <li>
-              <a href="#home" className="text-gray-600 hover:text-teal-500">
+              <Link
+                to="/"
+                className={`text-gray-600 hover:text-teal-500 ${activeLink === '/' ? 'text-teal-500' : ''}`}
+                onClick={() => handleLinkClick('/')}
+              >
                 Home
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="#service" className="text-gray-600 hover:text-teal-500">
+              <Link
+                to="/signup"
+                className={`text-gray-600 hover:text-teal-500 ${activeLink === '/signup' ? 'text-teal-500' : ''}`}
+                onClick={() => handleLinkClick('/signup')}
+              >
                 Service
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="#contact" className="text-gray-600 hover:text-teal-500">
+              <Link
+                to="/contactus"
+                className={`text-gray-600 hover:text-teal-500 ${activeLink === '/contactus' ? 'text-teal-500' : ''}`}
+                onClick={() => handleLinkClick('/contactus')}
+              >
                 Contact Us
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="#help" className="text-gray-600 hover:text-teal-500">
+              <Link
+                to="/help"
+                className={`text-gray-600 hover:text-teal-500 ${activeLink === '/help' ? 'text-teal-500' : ''}`}
+                onClick={() => handleLinkClick('/help')}
+              >
                 Help
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="#blogs" className="text-gray-600 hover:text-teal-500">
+              <Link
+                to="/blogs"
+                className={`text-gray-600 hover:text-teal-500 ${activeLink === '/blogs' ? 'text-teal-500' : ''}`}
+                onClick={() => handleLinkClick('/blogs')}
+              >
                 Blogs
-              </a>
+              </Link>
             </li>
           </ul>
         </nav>
