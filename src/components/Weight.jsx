@@ -1,33 +1,52 @@
-// import React from 'react'
-import { Line } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+// Weight.jsx
+import PropTypes from "prop-types";
+import { Line } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
-export default function Weight() {
+export default function Weight({ data }) {
+  // Process the data to fit the chart
+  const processedData = data.map((item) => ({
+    date: new Date(item.createdAt).toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+    }),
+    weight: parseInt(item.weight, 10),
+  }));
 
-  const data = [
-    { date: "January 2024", Weight: "50"},
-    { date: "February 2024", Weight: "55"},
-    { date: "April 2024", Weight: "60" },
-    { date: "May 2024", Weight: "63" },
-  ];
-
-   // Prepare the data for the graph
-   const chartData = {
-    labels: data.map(item => item.date),
+  const chartData = {
+    labels: processedData.map((item) => item.date),
     datasets: [
       {
-        label: 'Weight (kg)',
-        data: data.map(item => item.Weight),
-        borderColor: '#22c55e', // Green color for the line
-        backgroundColor: 'rgba(34, 197, 94, 0.1)', // Light green for fill
-        pointBackgroundColor: '#22c55e',
-        pointBorderColor: '#ffffff',
+        label: "Weight (kg)",
+        data: processedData.map((item) => item.weight),
+        borderColor: "#22c55e",
+        backgroundColor: "rgba(34, 197, 94, 0.1)",
+        pointBackgroundColor: "#22c55e",
+        pointBorderColor: "#ffffff",
         pointRadius: 5,
         pointHoverRadius: 7,
         fill: true,
-        tension: 0.4, // Smooth curve effect
+        tension: 0.4,
       },
     ],
   };
@@ -36,22 +55,22 @@ export default function Weight() {
     responsive: true,
     plugins: {
       legend: {
-        display: false, // Hide the legend
+        display: false,
       },
       title: {
-        display: false, // No chart title
+        display: false,
       },
     },
     scales: {
       x: {
         grid: {
-          display: false, // Hide vertical grid lines
+          display: false,
         },
       },
       y: {
         grid: {
-          borderDash: [5, 5], // Dotted horizontal grid lines
-          color: 'rgba(0,0,0,0.1)', // Light grid line color
+          borderDash: [5, 5],
+          color: "rgba(0,0,0,0.1)",
         },
         ticks: {
           beginAtZero: true,
@@ -60,11 +79,14 @@ export default function Weight() {
     },
   };
 
-
   return (
     <div className="flex flex-wrap w-full justify-center items-center gap-[20px]">
       <div className="flex max-w-[520px] max-h-[368px] lg:w-[520px] lg:h-[368px] border rounded-[10px] p-2 items-center justify-center">
-        <Line data={chartData} options={options} className='max-w-[335px] max-h-[241px] lg:-w-[335px] lg:h-[241px]'/>
+        <Line
+          data={chartData}
+          options={options}
+          className="max-w-[335px] max-h-[241px] lg:-w-[335px] lg:h-[241px]"
+        />
       </div>
       <div className="max-w-4xl mx-auto p-4">
         <table className="min-w-full border-collapse shadow-sm">
@@ -78,14 +100,14 @@ export default function Weight() {
               </th>
             </tr>
           </thead>
-          <tbody className="border border-[#A1A1AA] ">
-            {data.map((item, index) => (
+          <tbody className="border border-[#A1A1AA]">
+            {processedData.map((item, index) => (
               <tr key={index} className="even:bg-gray-50">
-                <td className="border border-gray-300 text-center w-[168px] h-[72px]  border-r-0 border-t border-b text-[14px] font-normal">
+                <td className="border border-gray-300 text-center w-[168px] h-[72px] border-r-0 border-t border-b text-[14px] font-normal">
                   {item.date}
                 </td>
-                <td className="border border-gray-300 text-center w-[168px] h-[72px] border-l-0  border-t border-b text-[14px] font-normal">
-                  {item.Weight}kg
+                <td className="border border-gray-300 text-center w-[168px] h-[72px] border-l-0 border-r-0 border-t border-b text-[14px] font-normal">
+                  {item.weight} kg
                 </td>
               </tr>
             ))}
@@ -93,5 +115,18 @@ export default function Weight() {
         </table>
       </div>
     </div>
-  )
+  );
 }
+
+// Define PropTypes for better type checking
+Weight.propTypes = {
+  data: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      weight: PropTypes.string.isRequired,
+      email: PropTypes.string.isRequired,
+      createdAt: PropTypes.string.isRequired,
+      // Add other relevant fields if present
+    })
+  ).isRequired,
+};

@@ -1,4 +1,6 @@
-// Import necessary Chart.js components
+// InsulinTracking.jsx
+import PropTypes from "prop-types";
+import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -8,22 +10,21 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-
 import { useState } from "react";
-import { Bar } from "react-chartjs-2";
 
-// Register the Chart.js components
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
-export default function InsulinTracking() {
-  const data = [
-    { date: "Dec 07, 23", MorningDose: "20UI", AfternoonDose: "15UI", EveningDose: "25UI" },
-    { date: "Dec 08, 23", MorningDose: "22UI", AfternoonDose: "18UI", EveningDose: "20UI" },
-    { date: "Dec 09, 23", MorningDose: "18UI", AfternoonDose: "16UI", EveningDose: "24UI" },
-    { date: "Dec 10, 23", MorningDose: "25UI", AfternoonDose: "20UI", EveningDose: "30UI" },
-  ];
+export default function InsulinTracking({ data }) {
+  const [selectedRow, setSelectedRow] = useState(null);
 
-  const [selectedRow, setSelectedRow] = useState(0);
+  console.log(data);
 
   const handleRowClick = (index) => {
     setSelectedRow(index);
@@ -32,20 +33,33 @@ export default function InsulinTracking() {
   // Helper function to extract numeric values from dose strings
   const extractDoseValue = (dose) => parseInt(dose.replace("UI", ""), 10);
 
-  // Chart Data
+  // Process the data to fit the chart
+  const processedData = data.map((item) => ({
+    date: new Date(item.createdAt).toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+    }),
+    MorningDose: item.morningDose,
+    AfternoonDose: item.afternoonDose,
+    EveningDose: item.eveningDose,
+  }));
+
+  // Determine which data to display based on the selected row
   const chartData = {
     labels: ["Morning", "Afternoon", "Evening"],
     datasets: [
       {
-        label: "UI",
-        data: selectedRow !== null
-          ? [
-              extractDoseValue(data[selectedRow].MorningDose),
-              extractDoseValue(data[selectedRow].AfternoonDose),
-              extractDoseValue(data[selectedRow].EveningDose),
-            ]
-          : [0, 0, 0], // Default data if no row is selected
-        backgroundColor: ["#06b6d4", "#8b5cf6", "#facc15"], // Bar colors
+        label: "Insulin Dose (UI)",
+        data:
+          selectedRow !== null
+            ? [
+                processedData[selectedRow].MorningDose,
+                processedData[selectedRow].AfternoonDose,
+                processedData[selectedRow].EveningDose,
+              ]
+            : [0, 0, 0],
+        backgroundColor: ["#06b6d4", "#8b5cf6", "#facc15"],
         borderRadius: 5,
         barThickness: 30,
       },
@@ -54,7 +68,7 @@ export default function InsulinTracking() {
 
   const chartOptions = {
     responsive: true,
-    indexAxis: "y", // Makes the chart horizontal
+    indexAxis: "y",
     scales: {
       x: {
         ticks: { beginAtZero: true },
@@ -78,7 +92,11 @@ export default function InsulinTracking() {
   return (
     <div className="flex flex-wrap w-full justify-center items-center gap-[20px]">
       <div className="flex max-w-[520px] max-h-[368px] lg:w-[520px] lg:h-[368px] border rounded-[10px] p-2 items-center justify-center">
-            <Bar data={chartData} options={chartOptions} className='max-w-[335px] max-h-[241px] lg:-w-[335px] lg:h-[241px]'/>
+        <Bar
+          data={chartData}
+          options={chartOptions}
+          className="max-w-[335px] max-h-[241px] lg:-w-[335px] lg:h-[241px]"
+        />
       </div>
       <div className="max-w-4xl mx-auto p-4">
         <table className="min-w-full border-collapse shadow-sm">
@@ -98,26 +116,28 @@ export default function InsulinTracking() {
               </th>
             </tr>
           </thead>
-          <tbody className="border border-[#A1A1AA] ">
-            {data.map((item, index) => (
+          <tbody className="border border-[#A1A1AA]">
+            {processedData.map((item, index) => (
               <tr
                 key={index}
                 onClick={() => handleRowClick(index)}
-                className={`cursor-pointer  ${
-                  selectedRow === index ? "bg-[#1232584D] text-[#475467]" : "bg-white"
+                className={`cursor-pointer ${
+                  selectedRow === index
+                    ? "bg-[#1232584D] text-[#475467]"
+                    : "bg-white"
                 }`}
               >
                 <td className="border border-gray-300 text-center w-[168px] h-[72px] border-r-0 border-t border-b text-[14px] font-normal">
                   {item.date}
                 </td>
                 <td className="border border-gray-300 text-center w-[168px] h-[72px] border-l-0 border-r-0 border-t border-b text-[14px] font-normal">
-                  {item.MorningDose}
+                  {item.MorningDose} UI
                 </td>
                 <td className="border border-gray-300 text-center w-[168px] h-[72px] border-l-0 border-r-0 border-t border-b text-[14px] font-normal">
-                  {item.AfternoonDose}
+                  {item.AfternoonDose} UI
                 </td>
                 <td className="border border-gray-300 text-center w-[168px] h-[72px] border-l-0 border-t border-b text-[14px] font-normal">
-                  {item.EveningDose}
+                  {item.EveningDose} UI
                 </td>
               </tr>
             ))}
@@ -127,3 +147,18 @@ export default function InsulinTracking() {
     </div>
   );
 }
+
+// Define PropTypes for better type checking
+InsulinTracking.propTypes = {
+  data: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      MorningDose: PropTypes.string.isRequired,
+      AfternoonDose: PropTypes.string.isRequired,
+      EveningDose: PropTypes.string.isRequired,
+      createdAt: PropTypes.string.isRequired,
+      email: PropTypes.string.isRequired,
+      // Add other relevant fields if present
+    })
+  ).isRequired,
+};

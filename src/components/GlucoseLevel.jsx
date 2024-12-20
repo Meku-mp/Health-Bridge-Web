@@ -1,34 +1,62 @@
-// import React from 'react';
-import { Line } from 'react-chartjs-2';
-import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
+// GlucoseLevel.jsx
+import PropTypes from "prop-types";
+import { Line } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from "chart.js";
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
-export default function GlucoseLevel() {
-  const data = [
-    { date: "Dec 07, 23", level: "134 mg/dl", status: "Safe" },
-    { date: "Dec 09, 23", level: "70 mg/dl", status: "Safe" },
-    { date: "Dec 01, 23", level: "174 mg/dl", status: "Risk" },
-    { date: "Dec 01, 23", level: "120 mg/dl", status: "Risk" },
-  ];
-
-  const getStatusStyle = (status) => {
-    return status === "Safe"
-      ? "bg-green-100 text-green-700"
-      : "bg-red-100 text-red-700";
-  };
+export default function GlucoseLevel({ data }) {
+  // Process the data to fit the chart
+  const processedData = data.map((item) => ({
+    date: new Date(item.createdAt).toLocaleDateString("en-US", {
+      month: "short",
+      day: "2-digit",
+      year: "numeric",
+    }),
+    glucoseLevel: parseInt(item.glucoseLevel, 10),
+    status: item.level, // Assuming 'level' indicates status
+  }));
 
   const chartData = {
-    labels: data.map((item) => item.date),
+    labels: processedData.map((item) => item.date),
     datasets: [
       {
         label: "Glucose Level (mg/dl)",
-        data: data.map((item) => parseInt(item.level)),
-        backgroundColor: data.map((item) =>
-          item.status === "Safe" ? "#22c55e" : "#ef4444"
+        data: processedData.map((item) => item.glucoseLevel),
+        backgroundColor: processedData.map((item) =>
+          item.status === "Normal" || item.status === "Safe"
+            ? "#22c55e"
+            : "#ef4444"
         ),
-        borderRadius: 4,
-        barThickness: 20,
+        borderColor: "#3b82f6",
+        borderWidth: 2,
+        fill: false,
+        tension: 0.4,
+        pointBackgroundColor: processedData.map((item) =>
+          item.status === "Normal" || item.status === "Safe"
+            ? "#22c55e"
+            : "#ef4444"
+        ),
+        pointBorderColor: "#ffffff",
+        pointRadius: 5,
+        pointHoverRadius: 7,
       },
     ],
   };
@@ -69,7 +97,11 @@ export default function GlucoseLevel() {
   return (
     <div className="flex flex-wrap w-full justify-center items-center gap-[20px]">
       <div className="flex max-w-[520px] max-h-[368px] lg:w-[520px] lg:h-[368px] border rounded-[10px] p-2 items-center justify-center">
-        <Line data={chartData} options={chartOptions} className='max-w-[335px] max-h-[241px] lg:-w-[335px] lg:h-[241px]'/>
+        <Line
+          data={chartData}
+          options={chartOptions}
+          className="max-w-[335px] max-h-[241px] lg:-w-[335px] lg:h-[241px]"
+        />
       </div>
       <div className="max-w-4xl mx-auto p-4">
         <table className="min-w-full border-collapse shadow-sm">
@@ -79,7 +111,7 @@ export default function GlucoseLevel() {
                 Date
               </th>
               <th className="border-none text-center w-[168px] h-[44px] font-medium text-[12px] text-[#475467] bg-[#F9FAFB]">
-                Level
+                Glucose Level
               </th>
               <th className="border-none text-center w-[168px] h-[44px] font-medium text-[12px] text-[#475467] bg-[#F9FAFB]">
                 Status
@@ -87,17 +119,29 @@ export default function GlucoseLevel() {
             </tr>
           </thead>
           <tbody className="border border-[#A1A1AA]">
-            {data.map((item, index) => (
+            {processedData.map((item, index) => (
               <tr key={index} className="even:bg-gray-50">
                 <td className="border border-gray-300 text-center w-[168px] h-[72px] border-r-0 border-t border-b text-[14px] font-normal">
                   {item.date}
                 </td>
                 <td className="border border-gray-300 text-center w-[168px] h-[72px] border-l-0 border-r-0 border-t border-b text-[14px] font-normal">
-                  {item.level}
+                  {item.glucoseLevel} mg/dl
                 </td>
                 <td className="border border-gray-300 text-center w-[168px] h-[72px] border-l-0 border-t border-b text-[14px] font-medium">
-                  <span className={`inline-flex items-center px-3 py-1 rounded-[16px] text-sm font-medium ${getStatusStyle(item.status)}`}>
-                    <span className={`w-2 h-2 rounded-full mr-2 ${item.status === "Safe" ? "bg-green-500" : "bg-red-500"}`}></span>
+                  <span
+                    className={`inline-flex items-center px-3 py-1 rounded-[16px] text-sm font-medium ${
+                      item.status === "Normal" || item.status === "Safe"
+                        ? "bg-green-100 text-green-700"
+                        : "bg-red-100 text-red-700"
+                    }`}
+                  >
+                    <span
+                      className={`w-2 h-2 rounded-full mr-2 ${
+                        item.status === "Normal" || item.status === "Safe"
+                          ? "bg-green-500"
+                          : "bg-red-500"
+                      }`}
+                    ></span>
                     {item.status}
                   </span>
                 </td>
@@ -109,3 +153,18 @@ export default function GlucoseLevel() {
     </div>
   );
 }
+
+// Define PropTypes for better type checking
+GlucoseLevel.propTypes = {
+  data: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      level: PropTypes.string.isRequired,
+      email: PropTypes.string.isRequired,
+      createdAt: PropTypes.string.isRequired,
+      suggestedAction: PropTypes.string.isRequired,
+      risk: PropTypes.string.isRequired,
+      glucoseLevel: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+};
