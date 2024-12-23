@@ -1,9 +1,27 @@
 // src/TopBar.tsx
-import { FaBell } from 'react-icons/fa';
-import { FaEllipsisH } from 'react-icons/fa'; // Import horizontal ellipsis
-import ProfilePic from '../assets/profilePIC.png'
+import { FaBell } from "react-icons/fa";
+import { FaEllipsisH } from "react-icons/fa"; // Import horizontal ellipsis
+import ProfilePic from "../assets/profilePIC.png";
+import { useEffect } from "react";
+import { onAuthStateChanged } from "firebase/auth";
+import { useState } from "react";
+import { auth } from "../utilities/firebaseConfig";
 
 const TopBar = () => {
+  const [userEmail, setUserEmail] = useState(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUserEmail(user.email);
+      } else {
+        setUserEmail(null);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   return (
     <div className="fixed w-full flex items-center space-x-[16px] gap-[16px] justify-end bg-[#02053D] p-4 h-[72px] text-white shadow-lg  right md:ml-[240px] md:pr-[240px] max-md:ml-[60px] max-md:pr-[60px]">
       {/* Left Section - Bell Icon */}
@@ -13,22 +31,24 @@ const TopBar = () => {
         </button>
       </div>
 
-      <hr className='w-[0.5px] h-[31px] bg-[#E5E7FB]'/>
+      <hr className="w-[0.5px] h-[31px] bg-[#E5E7FB]" />
 
       {/* Right Section - User Info */}
       <div className="flex items-center space-x-[16px] gap-[16px] pr-[25px]">
-      <img
+        <img
           src={ProfilePic}
           alt="User Avatar"
           className="w-[32px] h-[32px] rounded-full"
         />
         <div className="hidden sm:flex flex-col text-left ">
-          <span className="font-semibold text-[14px] text-white">Georgia Griffin</span>
-          <span className="text-sm text-[#F2F4F7] text-[12px] font-normal">georgia@gmail.com</span>
+          <span className="font-semibold text-[14px] text-white">Doctor</span>
+          <span className="text-sm text-[#F2F4F7] text-[12px] font-normal">
+            {userEmail}
+          </span>
         </div>
-        
+
         <button className="flex bg-[#21234E] pl-[9px] hover:bg-gray-800 w-[40px] h-[40px] items-center rounded-[8px]">
-            <FaEllipsisH className="text-xl md:text-2xl text-[#E5E7FB]" />
+          <FaEllipsisH className="text-xl md:text-2xl text-[#E5E7FB]" />
         </button>
       </div>
     </div>
