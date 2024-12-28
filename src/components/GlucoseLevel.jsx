@@ -23,6 +23,7 @@ ChartJS.register(
 );
 
 export default function GlucoseLevel({ data }) {
+  console.log(data);
   // Process the data to fit the chart
   const processedData = data.map((item) => ({
     date: new Date(item.createdAt).toLocaleDateString("en-US", {

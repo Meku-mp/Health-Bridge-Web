@@ -1,5 +1,5 @@
 // import React from 'react'
-import CardImage from "../assets/patient.png";
+import CardImage from "../assets/Sample_User_Icon.png";
 // import Swal from 'sweetalert2';
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
@@ -71,7 +71,7 @@ export default function YourPatients() {
                   </span>
                   <hr className="w-[1px] h-[14px] bg-[#4B465C] max-xl:hidden" />
                   <span className="font-medium text-[14px] text-[#475467]">
-                    Jun 24, 2024
+                    {new Date(patient.createdAt).toLocaleDateString()}
                   </span>
                 </div>
               </div>

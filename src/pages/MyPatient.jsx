@@ -1,7 +1,7 @@
 // MyPatient.jsx
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import CardImage from "../assets/patient.png";
+import CardImage from "../assets/Sample_User_Icon.png";
 import Swal from "sweetalert2";
 import GraphButtonIcon from "../assets/graph-button-icons.png";
 import GlucoseLevel from "../components/GlucoseLevel";
@@ -27,6 +27,8 @@ export default function MyPatient() {
   const [insulinChartData, setInsulinData] = useState([]);
   const [weightChartData, setWeightData] = useState([]);
   const [urinationChartData, setUrinationData] = useState([]);
+  const [reportChartData, setReportData] = useState([]);
+  const [specialNoteData, setSpecialNoteData] = useState([]);
   const [activeContent, setActiveContent] = useState("glucoseLevel");
 
   const showContent = (content) => {
@@ -78,10 +80,12 @@ export default function MyPatient() {
       fetchChartData("InsulinTrackingChart", setInsulinData, patient.email);
       fetchChartData("WeightChart", setWeightData, patient.email);
       fetchChartData("UrinationChart", setUrinationData, patient.email);
+      fetchChartData("ReportUpload", setReportData, patient.email);
+      fetchChartData("SpecialNote", setSpecialNoteData, patient.email);
     }
   }, [patient]);
 
-  // Function to handle Call button click
+  /* // Function to handle Call button click
   const handleCall = () => {
     Swal.fire({
       title: "Are you sure?",
@@ -113,7 +117,7 @@ export default function MyPatient() {
         Swal.fire("Sent!", "The message has been sent.", "success");
       }
     });
-  };
+  }; */
 
   if (!patient) {
     return (
@@ -122,6 +126,11 @@ export default function MyPatient() {
       </div>
     );
   }
+
+  console.log(glucoseChartData);
+  console.log(insulinChartData);
+  console.log(weightChartData);
+  console.log(urinationChartData);
 
   return (
     <div className="flex h-full bg-[#F8F7FA] md:ml-[300px] ml-[90px] max-midxl:pr-[55px] max-md:pr-[32px] md:mt-[130px] mt-[100px] flex-col max-md:justify-center xl:w-[75vw] ">
@@ -162,12 +171,12 @@ export default function MyPatient() {
                 </span>
                 <hr className="w-[1px] h-[14px] bg-[#4B465C] max-xl:hidden" />
                 <span className="font-medium text-[14px] text-[#475467]">
-                  Jun 24, 2024
+                  {new Date(patient.createdAt).toLocaleDateString()}
                 </span>
               </div>
             </div>
           </div>
-          <div className="flex gap-[8px] max-lg:flex-col max-sm:mt-3 p-[20px] ">
+          {/* <div className="flex gap-[8px] max-lg:flex-col max-sm:mt-3 p-[20px] ">
             <button
               onClick={handleCall}
               className="text-[16px] font-semibold text-[#123258] bg-[#18DF80] rounded-[8px] hover:bg-[#2fbc78] w-[102px] h-[48px]"
@@ -180,7 +189,7 @@ export default function MyPatient() {
             >
               Message
             </button>
-          </div>
+          </div> */}
         </div>
         <div className="flex mt-[50px] mb-[50px] flex-wrap max-lg:justify-center">
           {/* Buttons to switch content */}
@@ -224,8 +233,10 @@ export default function MyPatient() {
           {activeContent === "urination" && (
             <Urination data={urinationChartData} />
           )}
-          {activeContent === "reports" && <Reports />}
-          {activeContent === "specialNote" && <SpecialNote />}
+          {activeContent === "reports" && <Reports data={reportChartData} />}
+          {activeContent === "specialNote" && (
+            <SpecialNote data={specialNoteData} />
+          )}
         </div>
       </div>
     </div>

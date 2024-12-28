@@ -5,9 +5,11 @@ import React, { useEffect, useState } from "react";
 import CardImage from "../assets/Doctor in a room with a patient.png";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../utilities/firebaseConfig";
+import { useNavigate } from "react-router-dom";
 
 function DashYourPatientCard() {
   const [len, setLen] = useState(0);
+  const naviagate = useNavigate();
 
   useEffect(() => {
     const getPatientCount = async () => {
@@ -38,7 +40,10 @@ function DashYourPatientCard() {
             {len}
           </span>
           <div className="flex items-center mt-[4px]">
-            <button className="text-[15px] font-medium  text-white  bg-[#123258] rounded-[6px] hover:bg-[#0d1e33] w-[76px] h-[38px]">
+            <button
+              className="text-[15px] font-medium  text-white  bg-[#123258] rounded-[6px] hover:bg-[#0d1e33] w-[76px] h-[38px]"
+              onClick={() => naviagate("/yourpatients")}
+            >
               View
             </button>
           </div>

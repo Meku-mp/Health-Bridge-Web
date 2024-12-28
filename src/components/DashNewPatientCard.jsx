@@ -7,9 +7,11 @@ import { useEffect } from "react";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../utilities/firebaseConfig";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function DashNewPatientCard() {
   const [len, setLen] = useState(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const getPatientCount = async () => {
@@ -40,7 +42,10 @@ function DashNewPatientCard() {
             {len}
           </span>
           <div className="flex items-center mt-[4px]">
-            <button className="text-[15px] font-medium  text-white  bg-[#123258] rounded-[6px] hover:bg-[#0d1e33] w-[76px] h-[38px]">
+            <button
+              className="text-[15px] font-medium  text-white  bg-[#123258] rounded-[6px] hover:bg-[#0d1e33] w-[76px] h-[38px]"
+              onClick={() => navigate("/newpatient")}
+            >
               View
             </button>
           </div>
