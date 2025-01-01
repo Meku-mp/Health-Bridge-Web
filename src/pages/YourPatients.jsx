@@ -39,7 +39,8 @@ export default function YourPatients() {
       const receiptUploadRef = collection(db, "ReceiptUpload");
       const receiptQuery = query(
         receiptUploadRef,
-        where("selectedDoctorName", "==", doctorData.name)
+        where("selectedDoctorName", "==", doctorData.name),
+        where("status", "==", "1")
       );
 
       const receiptSnapshot = await getDocs(receiptQuery);
@@ -68,7 +69,7 @@ export default function YourPatients() {
       const filteredPatients = patientData.filter(
         (patient) => patient.status === "2"
       );
-      setPatients(filteredPatients);
+      setPatients(patientData);
     } catch (error) {
       console.error("Error fetching patients:", error);
     }

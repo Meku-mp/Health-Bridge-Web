@@ -66,7 +66,8 @@ export default function NewPatients() {
       const receiptUploadRef = collection(db, "ReceiptUpload");
       const receiptQuery = query(
         receiptUploadRef,
-        where("selectedDoctorName", "==", doctorData.name)
+        where("selectedDoctorName", "==", doctorData.name),
+        where("status", "==", "0")
       );
 
       const receiptSnapshot = await getDocs(receiptQuery);
@@ -95,7 +96,7 @@ export default function NewPatients() {
       const filteredPatients = patientData.filter(
         (patient) => patient.status === "1"
       );
-      setPatients(filteredPatients);
+      setPatients(patientData);
     } catch (error) {
       console.error("Error fetching patients:", error);
     }
@@ -109,6 +110,9 @@ export default function NewPatients() {
 
   // Function to handle Accept button click
   const handleAccept = (patientId) => {
+    const patient = patients.find((p) => p.id === patientId);
+    if (!patient) return;
+
     Swal.fire({
       title: "Are you sure?",
       text: "You are about to accept this patient!",
@@ -119,15 +123,29 @@ export default function NewPatients() {
       confirmButtonText: "Yes, accept it!",
     }).then((result) => {
       if (result.isConfirmed) {
-        updateDoc(doc(db, "patients", patientId), { status: "2" });
-        Swal.fire("Accepted!", "The patient has been accepted.", "success");
-        fetchPatients(); // Refresh patient list
+        const receiptQuery = query(
+          collection(db, "ReceiptUpload"),
+          where("email", "==", patient.email)
+        );
+
+        getDocs(receiptQuery).then((querySnapshot) => {
+          querySnapshot.forEach((docSnapshot) => {
+            updateDoc(doc(db, "ReceiptUpload", docSnapshot.id), {
+              status: "1",
+            });
+          });
+          Swal.fire("Accepted!", "The patient has been accepted.", "success");
+          fetchPatients(); // Refresh patient list
+        });
       }
     });
   };
 
   // Function to handle Remove button click
   const handleRemove = (patientId) => {
+    const patient = patients.find((p) => p.id === patientId);
+    if (!patient) return;
+
     Swal.fire({
       title: "Are you sure?",
       text: "You are about to remove this patient!",
@@ -138,8 +156,20 @@ export default function NewPatients() {
       confirmButtonText: "Yes, remove it!",
     }).then((result) => {
       if (result.isConfirmed) {
-        updateDoc(doc(db, "patients", patientId), { status: "0" });
-        Swal.fire("Removed!", "The patient has been removed.", "success");
+        const receiptQuery = query(
+          collection(db, "ReceiptUpload"),
+          where("email", "==", patient.email)
+        );
+
+        getDocs(receiptQuery).then((querySnapshot) => {
+          querySnapshot.forEach((docSnapshot) => {
+            updateDoc(doc(db, "ReceiptUpload", docSnapshot.id), {
+              status: "2",
+            });
+          });
+          Swal.fire("Removed!", "The patient has been removed.", "success");
+          fetchPatients(); // Refresh patient list
+        });
       }
     });
   };
@@ -204,7 +234,7 @@ export default function NewPatients() {
                   </span>
                   <hr className="w-px h-3.5 bg-gray-600 max-midxl:hidden" />
                   <span className="font-medium text-sm text-gray-600">
-                    Jun 12, 2021
+                    {new Date(patient.createdAt).toLocaleDateString()}
                   </span>
                   <hr className="w-px h-3.5 bg-gray-600 max-midxl:hidden" />
                   <button
@@ -213,11 +243,6 @@ export default function NewPatients() {
                   >
                     View Receipt
                   </button>
-                </div>
-                <div className="flex midxl:w-4/5">
-                  <span className="font-normal text-xs text-gray-500 max-sm:text-center">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                  </span>
                 </div>
               </div>
             </div>

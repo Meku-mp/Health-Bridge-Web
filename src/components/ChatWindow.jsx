@@ -43,18 +43,44 @@ const App = () => {
   useEffect(() => {
     // Fetch patient data from Firebase
     const fetchPatients = async () => {
-      const patientsRef = collection(db, "patients");
-      const q = query(patientsRef, orderBy("username", "asc"));
-      const snapshot = await getDocs(q);
-      const patientData = snapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+      const receiptUploadRef = collection(db, "ReceiptUpload");
+      const receiptQuery = query(
+        receiptUploadRef,
+        where("selectedDoctorName", "==", doctorData.name),
+        where("status", "==", "1")
+      );
+
+      const receiptSnapshot = await getDocs(receiptQuery);
+      const patientData = [];
+
+      for (let docSnapshot of receiptSnapshot.docs) {
+        const patientEmail = docSnapshot.data().email;
+
+        // Now fetch the patient details from the "patients" collection based on the email
+        const patientRef = query(
+          collection(db, "patients"),
+          where("email", "==", patientEmail)
+        );
+
+        const patientSnapshot = await getDocs(patientRef);
+        patientSnapshot.forEach((patientDoc) => {
+          patientData.push({
+            id: patientDoc.id,
+            ...patientDoc.data(),
+            receiptImageUrl: docSnapshot.data().imageUrl, // Add the receipt image URL to the patient data
+          });
+        });
+      }
+
+      // Filter patients by status == "1" (Assuming status 1 means new or pending)
+      const filteredPatients = patientData.filter(
+        (patient) => patient.status === "2"
+      );
       setPatients(patientData);
     };
 
     fetchPatients();
-  }, []);
+  }, [doctorData.name]);
 
   useEffect(() => {
     if (currentChat) {

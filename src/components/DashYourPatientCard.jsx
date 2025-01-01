@@ -3,25 +3,44 @@ import React, { useEffect, useState } from "react";
 // import cardImage from "../assets/newp.png";
 // Replace with the actual path to your image
 import CardImage from "../assets/Doctor in a room with a patient.png";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "../utilities/firebaseConfig";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
+import { auth, db } from "../utilities/firebaseConfig";
 import { useNavigate } from "react-router-dom";
+import { onAuthStateChanged } from "firebase/auth";
 
 function DashYourPatientCard() {
   const [len, setLen] = useState(0);
   const naviagate = useNavigate();
 
   useEffect(() => {
-    const getPatientCount = async () => {
-      const patientCollection = collection(db, "patients");
-      const snapshot = await getDocs(patientCollection);
-      const count = snapshot.docs.filter(
-        (doc) => doc.data().status == "2"
-      ).length;
-      setLen(count);
-    };
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          const docData = userDoc.data();
+          const patientCollection = collection(db, "ReceiptUpload");
+          const q = query(
+            patientCollection,
+            where("selectedDoctorName", "==", docData.name)
+          );
+          const snapshot = await getDocs(q);
 
-    getPatientCount();
+          const count = snapshot.docs.filter(
+            (doc) => doc.data().status === "1"
+          ).length;
+          setLen(count);
+        }
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
   return (

@@ -1,7 +1,7 @@
 // src/TopBar.tsx
 import { FaBell } from "react-icons/fa";
 import { FaEllipsisH } from "react-icons/fa"; // Import horizontal ellipsis
-import ProfilePic from "../assets/profilePIC.png";
+import ProfilePic from "../assets/doctor.png";
 import { useEffect } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { useState } from "react";
