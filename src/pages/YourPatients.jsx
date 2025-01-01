@@ -3,25 +3,71 @@ import CardImage from "../assets/Sample_User_Icon.png";
 // import Swal from 'sweetalert2';
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { db } from "../utilities/firebaseConfig";
-import { collection, getDocs } from "firebase/firestore";
+import { auth, db } from "../utilities/firebaseConfig";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 import { useEffect } from "react";
+import { onAuthStateChanged } from "firebase/auth";
 
 export default function YourPatients() {
   const [patients, setPatients] = useState([]);
+  const [doctorData, setDoctorData] = useState({});
   const navigate = useNavigate();
-  const userEmail = localStorage.getItem("user_email");
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          setDoctorData(userDoc.data());
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   // Fetch patient data from Firebase
   const fetchPatients = async () => {
     try {
-      const querySnapshot = await getDocs(collection(db, "patients")); // Adjust collection name if needed
-      const data = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      // Filter patients by status
-      const filteredPatients = data.filter((patient) => patient.status === "2");
+      const receiptUploadRef = collection(db, "ReceiptUpload");
+      const receiptQuery = query(
+        receiptUploadRef,
+        where("selectedDoctorName", "==", doctorData.name)
+      );
+
+      const receiptSnapshot = await getDocs(receiptQuery);
+      const patientData = [];
+
+      for (let docSnapshot of receiptSnapshot.docs) {
+        const patientEmail = docSnapshot.data().email;
+
+        // Now fetch the patient details from the "patients" collection based on the email
+        const patientRef = query(
+          collection(db, "patients"),
+          where("email", "==", patientEmail)
+        );
+
+        const patientSnapshot = await getDocs(patientRef);
+        patientSnapshot.forEach((patientDoc) => {
+          patientData.push({
+            id: patientDoc.id,
+            ...patientDoc.data(),
+            receiptImageUrl: docSnapshot.data().imageUrl, // Add the receipt image URL to the patient data
+          });
+        });
+      }
+
+      // Filter patients by status == "1" (Assuming status 1 means new or pending)
+      const filteredPatients = patientData.filter(
+        (patient) => patient.status === "2"
+      );
       setPatients(filteredPatients);
     } catch (error) {
       console.error("Error fetching patients:", error);
@@ -29,14 +75,21 @@ export default function YourPatients() {
   };
 
   useEffect(() => {
-    fetchPatients();
-  }, [userEmail]);
+    if (doctorData.name) {
+      fetchPatients();
+    }
+  }, [doctorData]);
 
   return (
     <div className="flex md:ml-[300px] ml-[90px] max-midxl:pr-[55px] max-md:pr-[32px] md:mt-[130px] mt-[100px] flex-col max-md:justify-center xl:w-[75vw]">
       <div className="text-[#4B465C] text-[26px] font-extrabold pr-8 md:pb-[50px] pb-[40px] w-full">
         <span>Your Patients</span>
       </div>
+
+      {patients.length === 0 && (
+        <div className="text-center text-gray-600">No patients</div>
+      )}
+
       <div className="space-y-4">
         {patients.map((patient) => (
           <div

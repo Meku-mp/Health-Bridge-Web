@@ -1,24 +1,100 @@
-// import React from 'react'
-import CardImage from "../assets/patient.png";
-import Swal from "sweetalert2";
 import { useState, useEffect } from "react";
-import { db } from "../utilities/firebaseConfig";
-import { collection, getDocs, updateDoc, doc } from "firebase/firestore";
+import CardImage from "../assets/Sample_User_Icon.png";
+import Swal from "sweetalert2";
+import { auth, db } from "../utilities/firebaseConfig";
+import {
+  collection,
+  getDocs,
+  updateDoc,
+  doc,
+  query,
+  where,
+  getDoc,
+} from "firebase/firestore";
+import { onAuthStateChanged } from "firebase/auth";
+
+// Modal component to show the receipt
+import PropTypes from "prop-types";
+
+const ReceiptModal = ({ isOpen, imageUrl, onClose }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
+      <div className="bg-white p-5 rounded-lg max-w-[90%] max-h-[90%] overflow-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">Receipt</h2>
+          <button
+            onClick={onClose}
+            className="text-red-600 text-lg font-semibold"
+          >
+            Close
+          </button>
+        </div>
+        <img
+          src={imageUrl}
+          alt="Receipt"
+          className="w-full h-auto rounded-md"
+        />
+      </div>
+    </div>
+  );
+};
 
 export default function NewPatients() {
   const [patients, setPatients] = useState([]);
-  const userEmail = localStorage.getItem("user_email");
+  const [doctorData, setDoctorData] = useState({});
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [receiptImageUrl, setReceiptImageUrl] = useState("");
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          setDoctorData(userDoc.data());
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   // Fetch patient data from Firebase
   const fetchPatients = async () => {
     try {
-      const querySnapshot = await getDocs(collection(db, "patients")); // Adjust collection name
-      const data = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
-      // Filter patients by email and status
-      const filteredPatients = data.filter((patient) => patient.status == "1");
+      const receiptUploadRef = collection(db, "ReceiptUpload");
+      const receiptQuery = query(
+        receiptUploadRef,
+        where("selectedDoctorName", "==", doctorData.name)
+      );
+
+      const receiptSnapshot = await getDocs(receiptQuery);
+      const patientData = [];
+
+      for (let docSnapshot of receiptSnapshot.docs) {
+        const patientEmail = docSnapshot.data().email;
+
+        // Now fetch the patient details from the "patients" collection based on the email
+        const patientRef = query(
+          collection(db, "patients"),
+          where("email", "==", patientEmail)
+        );
+
+        const patientSnapshot = await getDocs(patientRef);
+        patientSnapshot.forEach((patientDoc) => {
+          patientData.push({
+            id: patientDoc.id,
+            ...patientDoc.data(),
+            receiptImageUrl: docSnapshot.data().imageUrl, // Add the receipt image URL to the patient data
+          });
+        });
+      }
+
+      // Filter patients by status == "1" (Assuming status 1 means new or pending)
+      const filteredPatients = patientData.filter(
+        (patient) => patient.status === "1"
+      );
       setPatients(filteredPatients);
     } catch (error) {
       console.error("Error fetching patients:", error);
@@ -26,12 +102,13 @@ export default function NewPatients() {
   };
 
   useEffect(() => {
-    fetchPatients();
-  }, [userEmail]);
+    if (doctorData.name) {
+      fetchPatients();
+    }
+  }, [doctorData]);
 
   // Function to handle Accept button click
   const handleAccept = (patientId) => {
-    // update db
     Swal.fire({
       title: "Are you sure?",
       text: "You are about to accept this patient!",
@@ -67,11 +144,28 @@ export default function NewPatients() {
     });
   };
 
+  // Function to handle the "View Receipt" button click
+  const handleViewReceipt = (imageUrl) => {
+    setReceiptImageUrl(imageUrl);
+    setIsModalOpen(true);
+  };
+
+  // Function to close the modal
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setReceiptImageUrl(""); // Clear the image URL
+  };
+
   return (
     <div className="flex md:ml-[300px] ml-[90px] max-midxl:pr-[55px] max-md:pr-[32px] md:mt-[130px] mt-[100px] flex-col max-md:justify-center midxl:w-[75vw]">
       <div className="text-[#4B465C] text-[26px] font-extrabold pr-8 md:pb-[50px] pb-[40px]">
         <span>New Patients</span>
       </div>
+
+      {patients.length === 0 && (
+        <div className="text-center text-gray-600">No new patients</div>
+      )}
+
       <div className="space-y-4">
         {patients.map((patient) => (
           <div
@@ -113,7 +207,10 @@ export default function NewPatients() {
                     Jun 12, 2021
                   </span>
                   <hr className="w-px h-3.5 bg-gray-600 max-midxl:hidden" />
-                  <button className="font-semibold text-sm text-blue-700 w-24 h-6 bg-blue-200 rounded-md">
+                  <button
+                    onClick={() => handleViewReceipt(patient.receiptImageUrl)}
+                    className="font-semibold text-sm text-blue-700 w-24 h-6 bg-blue-200 rounded-md"
+                  >
                     View Receipt
                   </button>
                 </div>
@@ -141,6 +238,19 @@ export default function NewPatients() {
           </div>
         ))}
       </div>
+
+      {/* Modal for displaying the receipt */}
+      <ReceiptModal
+        isOpen={isModalOpen}
+        imageUrl={receiptImageUrl}
+        onClose={closeModal}
+      />
     </div>
   );
 }
+
+ReceiptModal.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
+  imageUrl: PropTypes.string.isRequired,
+  onClose: PropTypes.func.isRequired,
+};

@@ -5,15 +5,21 @@ import ProfilePic from "../assets/profilePIC.png";
 import { useEffect } from "react";
 import { onAuthStateChanged } from "firebase/auth";
 import { useState } from "react";
-import { auth } from "../utilities/firebaseConfig";
+import { auth, db } from "../utilities/firebaseConfig";
+import { doc, getDoc } from "firebase/firestore";
 
 const TopBar = () => {
-  const [userEmail, setUserEmail] = useState(null);
+  const [userEmail, setUserEmail] = useState("");
+  const [name, setName] = useState("");
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setUserEmail(user.email);
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          setName(userDoc.data().name);
+        }
       } else {
         setUserEmail(null);
       }
@@ -41,7 +47,7 @@ const TopBar = () => {
           className="w-[32px] h-[32px] rounded-full"
         />
         <div className="hidden sm:flex flex-col text-left ">
-          <span className="font-semibold text-[14px] text-white">Doctor</span>
+          <span className="font-semibold text-[14px] text-white">{name}</span>
           <span className="text-sm text-[#F2F4F7] text-[12px] font-normal">
             {userEmail}
           </span>
