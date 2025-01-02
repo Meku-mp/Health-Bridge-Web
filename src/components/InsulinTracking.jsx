@@ -35,15 +35,17 @@ export default function InsulinTracking({ data }) {
 
   // Process the data to fit the chart
   const processedData = data.map((item) => ({
-    date: new Date(item.createdAt).toLocaleDateString("en-US", {
-      month: "short",
-      day: "2-digit",
+    date: new Date(item.createdAt.seconds * 1000).toLocaleString("en-US", {
       year: "numeric",
+      month: "long",
+      day: "numeric",
     }),
     MorningDose: item.morningDose,
     AfternoonDose: item.afternoonDose,
     EveningDose: item.eveningDose,
   }));
+
+  console.log(data);
 
   // Determine which data to display based on the selected row
   const chartData = {

@@ -25,10 +25,10 @@ ChartJS.register(
 export default function Weight({ data }) {
   // Process the data to fit the chart
   const processedData = data.map((item) => ({
-    date: new Date(item.createdAt).toLocaleDateString("en-US", {
-      month: "short",
-      day: "2-digit",
+    date: new Date(item.createdAt.seconds * 1000).toLocaleString("en-US", {
       year: "numeric",
+      month: "long",
+      day: "numeric",
     }),
     weight: parseInt(item.weight, 10),
   }));

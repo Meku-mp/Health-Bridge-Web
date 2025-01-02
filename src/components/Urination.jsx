@@ -25,7 +25,11 @@ ChartJS.register(
 
 export default function Urination({ data }) {
   const processedData = data.map((item) => ({
-    date: new Date(item.createdAt).toLocaleDateString(),
+    date: new Date(item.createdAt.seconds * 1000).toLocaleString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }),
     Morning: item.morning,
     Afternoon: item.afternoon,
     Evening: item.evening,
